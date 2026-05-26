@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lung Cancer Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 20px;
+            border: none;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8fafc;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #dbeafe;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .preview-container {
+            display: none;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            display: none;
+        }
+
+        .result-badge {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .result-normal {
+            background: var(--success);
+            color: white;
+        }
+
+        .result-cancer {
+            background: var(--danger);
+            color: white;
+        }
+
+        .confidence-bar {
+            height: 30px;
+            border-radius: 15px;
+            background: #e2e8f0;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: 600;
+            transition: width 1s ease;
+        }
+
+        .info-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .info-section h5 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--secondary);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .probability-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .probability-label {
+            width: 200px;
+            font-weight: 500;
+        }
+
+        .probability-bar {
+            flex: 1;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .probability-label {
+                width: 150px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fas fa-lungs"></i> Lung Cancer Detection System</h1>
+            <p>AI-Powered Medical Image Analysis</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-upload"></i> Upload CT Scan Image
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h5>Drag & Drop your CT scan image here</h5>
+                            <p class="text-muted">or click to browse</p>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        </div>
+
+                        <div class="preview-container" id="previewContainer">
+                            <button class="delete-btn" id="deleteBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <img id="previewImage" class="preview-image" alt="Preview">
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn submit-btn" id="submitBtn" disabled>
+                                <i class="fas fa-brain"></i> Analyze Image
+                            </button>
+                        </div>
+
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            <p>Analyzing image...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card result-container" id="resultContainer">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i> Analysis Results
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h4>Prediction:</h4>
+                            <div class="result-badge" id="resultBadge"></div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>Confidence Level:</h5>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFill"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>All Probabilities:</h5>
+                            <div id="probabilitiesContainer"></div>
+                        </div>
+
+                        <div class="info-section" id="infoSection">
+                            <h5 id="infoTitle"></h5>
+                            <div class="info-item">
+                                <span class="info-label">Description:</span>
+                                <p id="infoDescription"></p>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Common Symptoms:</span>
+                                <p id="infoSymptoms"></p>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Treatment Options:</span>
+                                <p id="infoTreatment"></p>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Prognosis:</span>
+                                <p id="infoPrognosis"></p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-custom alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Disclaimer:</strong> This is an AI-assisted tool and should not replace professional medical diagnosis. Please consult with a healthcare provider for accurate diagnosis and treatment.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="infoCard">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> About This Tool
+                    </div>
+                    <div class="card-body">
+                        <p><strong>This system detects four types of lung conditions:</strong></p>
+                        <ul>
+                            <li><strong>Adenocarcinoma:</strong> Most common lung cancer type</li>
+                            <li><strong>Large Cell Carcinoma:</strong> Aggressive non-small cell cancer</li>
+                            <li><strong>Squamous Cell Carcinoma:</strong> Often linked to smoking</li>
+                            <li><strong>Normal:</strong> Healthy lung tissue</li>
+                        </ul>
+                        <p class="mt-3 text-muted">
+                            <i class="fas fa-shield-alt"></i> Your privacy is important. Images are processed securely and not stored permanently.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Cancer information stored in frontend
+        const cancerInfo = {
+            'adenocarcinoma': {
+                'name': 'Adenocarcinoma',
+                'description': 'A type of non-small cell lung cancer that begins in mucus-secreting glands. It is the most common type of lung cancer.',
+                'symptoms': 'Persistent cough, chest pain, shortness of breath, coughing up blood, fatigue',
+                'treatment': 'Surgery, chemotherapy, radiation therapy, targeted therapy, immunotherapy',
+                'prognosis': 'Varies based on stage; early detection significantly improves outcomes'
+            },
+            'large.cell.carcinoma': {
+                'name': 'Large Cell Carcinoma',
+                'description': 'A type of non-small cell lung cancer that can appear in any part of the lung and tends to grow and spread quickly.',
+                'symptoms': 'Chronic cough, chest pain, weight loss, hemoptysis, difficulty breathing',
+                'treatment': 'Surgery, chemotherapy, radiation therapy, combination treatments',
+                'prognosis': 'Aggressive form; early intervention is crucial for better outcomes'
+            },
+            'normal': {
+                'name': 'Normal',
+                'description': 'No signs of cancerous tissue detected. The lung tissue appears healthy.',
+                'symptoms': 'N/A - No abnormalities detected',
+                'treatment': 'No treatment necessary. Continue regular health check-ups',
+                'prognosis': 'Excellent - Maintain healthy lifestyle and regular screenings'
+            },
+            'squamous.cell.carcinoma': {
+                'name': 'Squamous Cell Carcinoma',
+                'description': 'A type of non-small cell lung cancer that begins in squamous cells lining the airways. Often linked to smoking history.',
+                'symptoms': 'Persistent cough, chest discomfort, wheezing, coughing up blood, recurrent infections',
+                'treatment': 'Surgery, radiation therapy, chemotherapy, immunotherapy',
+                'prognosis': 'Treatment success depends on stage at diagnosis and overall health'
+            }
+        };
+
+        let selectedFile = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // File selection
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadArea.style.display = 'none';
+                submitBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        deleteBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            previewContainer.style.display = 'none';
+            uploadArea.style.display = 'block';
+            submitBtn.disabled = true;
+            resultContainer.style.display = 'none';
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const resultBadge = document.getElementById('resultBadge');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const probabilitiesContainer = document.getElementById('probabilitiesContainer');
+
+            // Get cancer info from frontend data
+            const info = cancerInfo[data.predicted_class];
+
+            // Set prediction
+            resultBadge.textContent = info.name;
+            resultBadge.className = 'result-badge ' + 
+                (data.predicted_class === 'normal' ? 'result-normal' : 'result-cancer');
+
+            // Set confidence
+            confidenceFill.style.width = data.confidence + '%';
+            confidenceFill.textContent = data.confidence + '%';
+
+            // Set all probabilities
+            probabilitiesContainer.innerHTML = '';
+            for (const [className, probability] of Object.entries(data.all_probabilities)) {
+                const displayName = className.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const item = document.createElement('div');
+                item.className = 'probability-item';
+                item.innerHTML = `
+                    <span class="probability-label">${displayName}</span>
+                    <div class="probability-bar">
+                        <div class="probability-fill" style="width: ${probability}%"></div>
+                    </div>
+                    <span>${probability}%</span>
+                `;
+                probabilitiesContainer.appendChild(item);
+            }
+
+            // Set info from frontend data
+            document.getElementById('infoTitle').textContent = info.name;
+            document.getElementById('infoDescription').textContent = info.description;
+            document.getElementById('infoSymptoms').textContent = info.symptoms;
+            document.getElementById('infoTreatment').textContent = info.treatment;
+            document.getElementById('infoPrognosis').textContent = info.prognosis;
+
+            resultContainer.style.display = 'block';
+            document.getElementById('infoCard').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
